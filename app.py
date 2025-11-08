@@ -20,7 +20,7 @@ from io import BytesIO
 # Version info
 VERSION = "1.0.0"
 RELEASE_NAME = "JARVIS"
-RELEASE_DATE = datetime.now().strftime("%Y-%m-%d")
+RELEASE_DATE = "2025-11-10"
 
 # Page configuration
 st.set_page_config(
@@ -112,6 +112,53 @@ st.markdown("""
         transform: scale(1.05);
         box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
     }
+    
+    /* Tab styling - increase font size */
+    .stTabs [data-baseweb="tab"] {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+        padding: 14px 24px !important;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] button {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] button span {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    div[data-testid="stTabs"] button {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Additional selectors for tab text */
+    button[data-baseweb="tab"] {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    .stTabs button p {
+        font-size: 22px !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Reduce spacing in sidebar */
+    [data-testid="stSidebar"] .element-container {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    [data-testid="stSidebar"] h3 {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    [data-testid="stSidebar"] .stMarkdown {
+        margin-bottom: 0.3rem !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -138,11 +185,55 @@ def render_header():
         <p style="font-size: 18px; opacity: 0.9;">
             AI-Powered Intelligent Incident Response & Resolution
         </p>
-        <p style="font-size: 12px; opacity: 0.7; margin-top: 10px;">
+        <p style="font-size: 18px; opacity: 0.9; margin-top: 10px; font-weight: bold;">
             v{VERSION} "{RELEASE_NAME}" | Released {RELEASE_DATE}
         </p>
     </div>
     """, unsafe_allow_html=True)
+
+
+def render_persistent_agent_status():
+    """Render persistent AI Agents Status section"""
+    st.markdown("### 🤖 AI AGENTS STATUS")
+    
+    # Agent configuration with updated background colors and names
+    agents = [
+        {"icon": "🔍", "name": "Log Classifier", "gradient": "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)"},
+        {"icon": "🔧", "name": "Remediation AI", "gradient": "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)"},
+        {"icon": "📱", "name": "Slack Notifier", "gradient": "linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)"},
+        {"icon": "🗒️", "name": "Cookbook Gen", "gradient": "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)"},
+        {"icon": "🎫", "name": "JIRA Creator", "gradient": "linear-gradient(135deg, #f59e0b 0%, #eab308 100%)"},
+        {"icon": "🔬", "name": "RCA Agent", "gradient": "linear-gradient(135deg, #06b6d4 0%, #6366f1 100%)"}
+    ]
+    
+    for agent in agents:
+        st.markdown(f"""
+        <div style="
+            background: {agent['gradient']};
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 2px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        ">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">{agent['icon']}</span>
+                <span style="font-size: 14px; font-weight: bold; color: white;">{agent['name']}</span>
+            </div>
+            <span style="
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                padding: 4px 10px;
+                border-radius: 15px;
+                font-size: 11px;
+                font-weight: bold;
+            ">
+                Status: ✅ ACTIVE
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 def render_sidebar():
@@ -152,27 +243,30 @@ def render_sidebar():
         st.markdown(f"""
         <div style="
             text-align: center;
-            padding: 20px 10px;
-            margin-bottom: 20px;
+            padding: 5px 10px;
+            margin-bottom: 5px;
         ">
             <div style="
                 font-size: 48px;
                 animation: pulse 2s ease-in-out infinite;
                 display: inline-block;
                 filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.4));
+                line-height: 1;
             ">🚨</div>
             <div style="
-                margin-top: 10px;
+                margin-top: 2px;
                 font-size: 16px;
                 font-weight: bold;
                 color: #667eea;
                 letter-spacing: 1px;
+                line-height: 1.2;
             ">DevOps Suite</div>
             <div style="
-                margin-top: 5px;
-                font-size: 11px;
-                color: rgba(255,255,255,0.7);
-                font-style: italic;
+                margin-top: 1px;
+                font-size: 16px;
+                font-weight: bold;
+                color: rgba(255,255,255,0.9);
+                line-height: 1.2;
             ">v{VERSION} "{RELEASE_NAME}"</div>
         </div>
         <style>
@@ -252,16 +346,15 @@ def render_sidebar():
         with col4:
             st.info("✓ RAG")
         
-        st.markdown("---")
-        
         # Sample logs
         st.markdown("### 📝 Quick Test")
         if st.button("Load Sample Logs", use_container_width=True):
             return "sample"
         
-        st.markdown("---")
+        # AI Agents Status section
+        render_persistent_agent_status()
         
-        # Agent status
+        # Agent status (dynamic during analysis)
         if st.session_state.orchestrator:
             st.markdown("### 🤖 Agent Status")
             status = st.session_state.orchestrator.get_agent_status()
@@ -284,6 +377,7 @@ def render_agent_timeline(timeline):
         agent = log.get("agent", "Unknown")
         status = log.get("status", "unknown")
         details = log.get("details", "")
+        execution_time = log.get("execution_time", None)
         
         # Status emoji
         emoji = {
@@ -295,13 +389,24 @@ def render_agent_timeline(timeline):
         # Progress indicator
         progress = (i + 1) / len(timeline)
         
+        # Format execution time
+        time_display = ""
+        if execution_time is not None:
+            if execution_time < 1:
+                time_display = f"⏱️ {execution_time*1000:.0f}ms"
+            else:
+                time_display = f"⏱️ {execution_time:.2f}s"
+        
         with st.container():
-            col1, col2 = st.columns([1, 4])
+            col1, col2, col3 = st.columns([1, 3, 1])
             with col1:
                 st.markdown(f"### {emoji}")
             with col2:
                 st.markdown(f"**{agent}**")
                 st.caption(details)
+            with col3:
+                if time_display:
+                    st.markdown(f"<div style='text-align: right; color: #10b981; font-weight: bold; padding-top: 10px;'>{time_display}</div>", unsafe_allow_html=True)
             
             st.progress(progress)
             st.markdown("---")
@@ -749,7 +854,53 @@ def render_results(results):
         st.markdown("### 📝 Executive Summary")
         st.info(state["summary"])
     
-    # Root Cause Analysis
+    # Remediations
+    if remediations:
+        st.markdown("### 💊 Remediation Plans")
+        
+        for i, rem in enumerate(remediations, 1):
+            issue = rem["issue"]
+            plan = rem["remediation_plan"]
+            
+            with st.expander(f"🔴 Issue #{i}: {issue['category'].upper()} - {issue['severity']}", expanded=False):
+                st.markdown(f"**Message:** `{issue['message']}`")
+                st.markdown(f"**Timestamp:** {issue.get('timestamp', 'Unknown')}")
+                st.markdown("---")
+                st.markdown("**Remediation Plan:**")
+                st.markdown(plan)
+                st.caption(f"Confidence: {rem['confidence']} | Sources: {rem['knowledge_sources']}")
+    
+    # JIRA Tickets
+    if jira_tickets.get("tickets"):
+        st.markdown("### 🎫 JIRA Tickets Created")
+        
+        for ticket in jira_tickets["tickets"]:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"**{ticket['ticket_key']}**: {ticket['summary']}")
+            with col2:
+                st.markdown(f"Priority: **{ticket['priority']}**")
+                if ticket.get("ticket_url"):
+                    st.markdown(f"[View Ticket]({ticket['ticket_url']})")
+    
+    # Cookbook
+    cookbook = state.get("cookbook", {})
+    if cookbook:
+        st.markdown("### 📚 Incident Playbook")
+        
+        with st.expander("View Complete Playbook", expanded=False):
+            st.json(cookbook)
+            
+            # Download button
+            cookbook_json = json.dumps(cookbook, indent=2)
+            st.download_button(
+                "Download Playbook",
+                cookbook_json,
+                file_name=f"incident_playbook_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                mime="application/json"
+            )
+    
+    # Root Cause Analysis (moved to end)
     rca_report = state.get("rca_report", {})
     if rca_report and rca_report.get("metadata"):
         st.markdown("### 🔬 Root Cause Analysis (RCA)")
@@ -864,66 +1015,20 @@ def render_results(results):
                 use_container_width=True,
                 help="Download raw data in JSON format"
             )
-    
-    # Remediations
-    if remediations:
-        st.markdown("### 💊 Remediation Plans")
-        
-        for i, rem in enumerate(remediations, 1):
-            issue = rem["issue"]
-            plan = rem["remediation_plan"]
-            
-            with st.expander(f"🔴 Issue #{i}: {issue['category'].upper()} - {issue['severity']}", expanded=False):
-                st.markdown(f"**Message:** `{issue['message']}`")
-                st.markdown(f"**Timestamp:** {issue.get('timestamp', 'Unknown')}")
-                st.markdown("---")
-                st.markdown("**Remediation Plan:**")
-                st.markdown(plan)
-                st.caption(f"Confidence: {rem['confidence']} | Sources: {rem['knowledge_sources']}")
-    
-    # JIRA Tickets
-    if jira_tickets.get("tickets"):
-        st.markdown("### 🎫 JIRA Tickets Created")
-        
-        for ticket in jira_tickets["tickets"]:
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.markdown(f"**{ticket['ticket_key']}**: {ticket['summary']}")
-            with col2:
-                st.markdown(f"Priority: **{ticket['priority']}**")
-                if ticket.get("ticket_url"):
-                    st.markdown(f"[View Ticket]({ticket['ticket_url']})")
-    
-    # Cookbook
-    cookbook = state.get("cookbook", {})
-    if cookbook:
-        st.markdown("### 📚 Incident Playbook")
-        
-        with st.expander("View Complete Playbook", expanded=False):
-            st.json(cookbook)
-            
-            # Download button
-            cookbook_json = json.dumps(cookbook, indent=2)
-            st.download_button(
-                "Download Playbook",
-                cookbook_json,
-                file_name=f"incident_playbook_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-                mime="application/json"
-            )
 
 
 def get_sample_logs():
     """Return sample logs for testing"""
-    return """2024-11-06 14:23:45 ERROR Database connection timeout - host: db.prod.local, port: 5432
-2024-11-06 14:23:46 CRITICAL Application crashed with OutOfMemory exception, heap size: 4GB
-2024-11-06 14:23:47 ERROR HTTP 503 Service Unavailable - /api/v1/users endpoint
-2024-11-06 14:23:50 WARNING High CPU usage detected: 95% on node-3
-2024-11-06 14:23:52 ERROR Network connection refused: service auth-service:8080
-2024-11-06 14:23:55 CRITICAL Disk space full on /var/log partition (100% usage)
-2024-11-06 14:24:00 ERROR NullPointerException in UserController.getUser() line 247
-2024-11-06 14:24:05 ERROR Authentication failed for user admin@example.com - invalid token
-2024-11-06 14:24:10 WARNING Memory usage at 85% - consider scaling
-2024-11-06 14:24:15 ERROR Failed to resolve DNS for api.external.com"""
+    return """2025-11-06 14:23:45 ERROR Database connection timeout - host: db.prod.local, port: 5432
+2025-11-06 14:23:46 CRITICAL Application crashed with OutOfMemory exception, heap size: 4GB
+2025-11-06 14:23:47 ERROR HTTP 503 Service Unavailable - /api/v1/users endpoint
+2025-11-06 14:23:50 WARNING High CPU usage detected: 95% on node-3
+2025-11-06 14:23:52 ERROR Network connection refused: service auth-service:8080
+2025-11-06 14:23:55 CRITICAL Disk space full on /var/log partition (100% usage)
+2025-11-06 14:24:00 ERROR NullPointerException in UserController.getUser() line 247
+2025-11-06 14:24:05 ERROR Authentication failed for user admin@example.com - invalid token
+2025-11-06 14:24:10 WARNING Memory usage at 85% - consider scaling
+2025-11-06 14:24:15 ERROR Failed to resolve DNS for api.external.com"""
 
 
 def main():
@@ -1309,30 +1414,61 @@ def main():
         
         ### 🤖 The 6 Agents
         
-        1. **🔍 Log Reader Agent** - Parses and classifies log entries with ML
-        2. **💊 Remediation Agent** - Uses RAG to find proven solutions from knowledge base
-        3. **🔬 RCA Agent** - Performs structured root cause analysis (Five Whys)
-        4. **📢 Notification Agent** - Posts solutions to Slack in real-time
-        5. **🎫 JIRA Agent** - Creates tickets for critical issues automatically
-        6. **📚 Cookbook Agent** - Generates reusable incident playbooks
+        1. **🔍 Log Classifier** - Parses and classifies log entries with ML, extracts severity levels (CRITICAL, ERROR, WARNING), categorizes issues by type (database, network, memory, etc.), and identifies key fields (IPs, error codes, services)
+        
+        2. **🔧 Remediation AI** - Uses **RAG (Retrieval Augmented Generation)** with FAISS vector store to find proven solutions from knowledge base. Performs semantic search to match issues with relevant remediation strategies and generates actionable fix plans
+        
+        3. **📱 Slack Notifier** - Posts rich formatted messages to Slack in real-time with issue details, remediation plans, and actionable insights. Supports fallback text for all clients and tracks notification delivery
+        
+        4. **🗒️ Cookbook Gen** - Generates reusable incident playbooks by synthesizing incident data, grouping issues by category, and creating actionable checklists for future reference. Exports playbooks in JSON format
+        
+        5. **🎫 JIRA Creator** - Automatically creates JIRA tickets for CRITICAL and ERROR issues with auto-set priority and labels. Includes full remediation context and links back to analysis dashboard
+        
+        6. **🔬 RCA Agent** - Performs structured root cause analysis using the **Five Whys methodology**. Generates comprehensive RCA reports with executive summaries, problem statements, root causes, impact assessments, immediate actions, preventive measures, and lessons learned. Exports reports in Word and JSON formats
         
         ### 🛠️ Tech Stack
         
-        - **LangChain & LangGraph** - Multi-agent orchestration
-        - **OpenAI GPT** - Language models
-        - **FAISS** - Vector database for RAG
-        - **Slack & JIRA APIs** - Integration
-        - **Streamlit** - Interactive UI
+        **Core Framework:**
+        - **LangChain & LangGraph** - Multi-agent orchestration and workflow management
+        - **OpenAI GPT / OpenRouter** - Advanced language models for AI reasoning
+        - **Streamlit** - Interactive, real-time UI with live updates
+        
+        **RAG & Vector Search:**
+        - **FAISS** - High-performance vector database for semantic search
+        - **HuggingFace Embeddings** - Sentence transformers (all-MiniLM-L6-v2) for embeddings
+        - **Knowledge Base** - Extensible remediation knowledge repository
+        
+        **Integrations:**
+        - **Slack API** - Real-time notifications and alerts
+        - **JIRA API** - Automated ticket creation and tracking
+        - **LangSmith** (Optional) - Agent tracing and monitoring
+        
+        **Data Processing:**
+        - **Async/Await** - Non-blocking agent execution
+        - **Real-time Metrics** - Dynamic business impact calculations
         
         ### 🎯 Features
         
-        ✅ Intelligent log parsing and classification  
-        ✅ RAG-powered remediation recommendations  
-        ✅ Automated Slack notifications  
-        ✅ JIRA ticket creation  
-        ✅ Incident playbook generation  
-        ✅ Real-time agent visualization  
-        ✅ Traceable execution logs  
+        **Core Capabilities:**
+        ✅ Intelligent log parsing and classification with ML  
+        ✅ **RAG-powered remediation** - FAISS vector search + knowledge base retrieval  
+        ✅ **Structured Root Cause Analysis (RCA)** - Five Whys methodology  
+        ✅ Automated Slack notifications with rich formatting  
+        ✅ JIRA ticket creation with auto-priority and labels  
+        ✅ Incident playbook generation (JSON export)  
+        
+        **Real-Time Analytics:**
+        ✅ **Agent execution timeline** - Live progress with execution times  
+        ✅ **Real-time business impact** - Dynamic ROI, cost, and time savings calculations  
+        ✅ **Performance metrics** - Per-agent execution time tracking  
+        ✅ **Live agent status** - Real-time visualization of agent collaboration  
+        
+        **Advanced Features:**
+        ✅ Traceable execution logs for all agents  
+        ✅ Downloadable RCA reports (Word & JSON formats)  
+        ✅ Exportable incident playbooks  
+        ✅ Multi-model support (OpenAI & OpenRouter)  
+        ✅ Extensible knowledge base for custom remediations  
         
         ### 📚 Resources
         
@@ -1344,7 +1480,7 @@ def main():
         
         **Version {VERSION} "{RELEASE_NAME}" | Released {RELEASE_DATE}**
         
-        Built with ❤️ for the Hackathon | © 2024
+        Built with ❤️ for the Hackathon | © 2025
         """)
 
 

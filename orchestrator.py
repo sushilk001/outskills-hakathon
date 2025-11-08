@@ -16,6 +16,7 @@ from agents import (
 )
 import logging
 import asyncio
+import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -85,12 +86,18 @@ class IncidentOrchestrator:
         """Execute Log Reader Agent"""
         logger.info("🔍 Executing Log Reader Agent...")
         
+        # Track execution time
+        start_time = time.time()
+        
         # Notify start if callback exists
         if self.progress_callback:
             await self.progress_callback("log_reader", "processing", "Parsing and classifying log entries...")
         
         try:
             result = await self.log_reader.execute({"logs": state["logs"]})
+            
+            # Calculate execution time
+            execution_time = time.time() - start_time
             
             # Notify completion
             if self.progress_callback:
@@ -104,7 +111,8 @@ class IncidentOrchestrator:
                 "agent_logs": [{
                     "agent": "Log Reader",
                     "status": "completed",
-                    "details": f"Analyzed {result.get('total_entries', 0)} log entries, found {len(result.get('issues_found', []))} issues"
+                    "details": f"Analyzed {result.get('total_entries', 0)} log entries, found {len(result.get('issues_found', []))} issues",
+                    "execution_time": execution_time
                 }]
             }
         except Exception as e:
@@ -120,6 +128,8 @@ class IncidentOrchestrator:
         """Execute Remediation Agent"""
         logger.info("💊 Executing Remediation Agent...")
         
+        start_time = time.time()
+        
         if self.progress_callback:
             await self.progress_callback("remediation", "processing", "Finding solutions using RAG knowledge base...")
         
@@ -127,6 +137,8 @@ class IncidentOrchestrator:
             result = await self.remediation.execute({
                 "issues_found": state["issues_found"]
             })
+            
+            execution_time = time.time() - start_time
             
             if self.progress_callback:
                 await self.progress_callback("remediation", "completed", 
@@ -137,7 +149,8 @@ class IncidentOrchestrator:
                 "agent_logs": [{
                     "agent": "Remediation",
                     "status": "completed",
-                    "details": f"Generated {len(result.get('remediations', []))} remediation plans"
+                    "details": f"Generated {len(result.get('remediations', []))} remediation plans",
+                    "execution_time": execution_time
                 }]
             }
         except Exception as e:
@@ -153,6 +166,8 @@ class IncidentOrchestrator:
         """Execute Notification Agent"""
         logger.info("📢 Executing Notification Agent...")
         
+        start_time = time.time()
+        
         if self.progress_callback:
             await self.progress_callback("notification", "processing", "Sending notifications to Slack...")
         
@@ -161,6 +176,8 @@ class IncidentOrchestrator:
                 "remediations": state["remediations"],
                 "summary": state["summary"]
             })
+            
+            execution_time = time.time() - start_time
             
             if self.progress_callback:
                 await self.progress_callback("notification", "completed", 
@@ -171,7 +188,8 @@ class IncidentOrchestrator:
                 "agent_logs": [{
                     "agent": "Notification",
                     "status": "completed",
-                    "details": f"Sent {result.get('notifications_sent', 0)} notifications"
+                    "details": f"Sent {result.get('notifications_sent', 0)} notifications",
+                    "execution_time": execution_time
                 }]
             }
         except Exception as e:
@@ -187,6 +205,8 @@ class IncidentOrchestrator:
         """Execute JIRA Agent"""
         logger.info("🎫 Executing JIRA Agent...")
         
+        start_time = time.time()
+        
         if self.progress_callback:
             await self.progress_callback("jira", "processing", "Creating JIRA tickets for critical issues...")
         
@@ -194,6 +214,8 @@ class IncidentOrchestrator:
             result = await self.jira.execute({
                 "remediations": state["remediations"]
             })
+            
+            execution_time = time.time() - start_time
             
             if self.progress_callback:
                 await self.progress_callback("jira", "completed", 
@@ -204,7 +226,8 @@ class IncidentOrchestrator:
                 "agent_logs": [{
                     "agent": "JIRA",
                     "status": "completed",
-                    "details": f"Created {result.get('tickets_created', 0)} tickets"
+                    "details": f"Created {result.get('tickets_created', 0)} tickets",
+                    "execution_time": execution_time
                 }]
             }
         except Exception as e:
@@ -220,6 +243,8 @@ class IncidentOrchestrator:
         """Execute RCA Agent"""
         logger.info("🔬 Executing RCA Agent...")
         
+        start_time = time.time()
+        
         if self.progress_callback:
             await self.progress_callback("rca", "processing", "Performing root cause analysis...")
         
@@ -230,6 +255,8 @@ class IncidentOrchestrator:
                 "log_analysis": state["log_analysis"]
             })
             
+            execution_time = time.time() - start_time
+            
             if self.progress_callback:
                 await self.progress_callback("rca", "completed", "Root Cause Analysis completed")
             
@@ -238,7 +265,8 @@ class IncidentOrchestrator:
                 "agent_logs": [{
                     "agent": "RCA",
                     "status": "completed",
-                    "details": "Root Cause Analysis completed"
+                    "details": "Root Cause Analysis completed",
+                    "execution_time": execution_time
                 }]
             }
         except Exception as e:
@@ -254,6 +282,8 @@ class IncidentOrchestrator:
         """Execute Cookbook Agent"""
         logger.info("📚 Executing Cookbook Agent...")
         
+        start_time = time.time()
+        
         if self.progress_callback:
             await self.progress_callback("cookbook", "processing", "Generating incident playbook...")
         
@@ -263,6 +293,8 @@ class IncidentOrchestrator:
                 "summary": state["summary"]
             })
             
+            execution_time = time.time() - start_time
+            
             if self.progress_callback:
                 await self.progress_callback("cookbook", "completed", "Incident playbook created")
             
@@ -271,7 +303,8 @@ class IncidentOrchestrator:
                 "agent_logs": [{
                     "agent": "Cookbook",
                     "status": "completed",
-                    "details": "Incident playbook created"
+                    "details": "Incident playbook created",
+                    "execution_time": execution_time
                 }]
             }
         except Exception as e:
