@@ -122,3 +122,10 @@ streamlit run app.py
 **Version:** 1.0.0 "JARVIS"  
 **Status:** ✅ Production Ready | 🏆 Hackathon Winner Quality
 
+---
+
+## 👤 Project Creator
+
+**Created by:** Sushil Kumar  
+🔗 [LinkedIn](https://www.linkedin.com/in/sushilk001/)
+

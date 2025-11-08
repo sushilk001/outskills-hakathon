@@ -256,3 +256,10 @@ OPENROUTER_MODEL=anthropic/claude-3-sonnet
 
 **Ready to use OpenRouter? Get your key and start analyzing! 🎯**
 
+---
+
+## 👤 Project Creator
+
+**Created by:** Sushil Kumar  
+🔗 [LinkedIn](https://www.linkedin.com/in/sushilk001/)
+

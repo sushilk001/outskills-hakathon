@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] - 2024-11-07 - Hackathon Submission
+## [1.0.0] - 2025-11-07 - Hackathon Submission
 
 ### 🏆 Hackathon-Ready Release
 
@@ -189,7 +189,7 @@ All configurable via `config.py`:
 
 ## Version History
 
-### [1.0.0] - 2024-11-07
+### [1.0.0] - 2025-11-07
 - Initial hackathon submission release
 - All core features implemented
 - Production-ready quality
@@ -205,4 +205,11 @@ All configurable via `config.py`:
 ---
 
 *"In the time it took you to read this changelog, our system analyzed 3 incidents."* ⚡
+
+---
+
+## 👤 Project Creator
+
+**Created by:** Sushil Kumar  
+🔗 [LinkedIn](https://www.linkedin.com/in/sushilk001/)
 

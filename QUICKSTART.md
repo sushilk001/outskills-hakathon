@@ -195,3 +195,10 @@ You now have a fully functional Multi-Agent DevOps Incident Analysis Suite!
 
 **Happy Analyzing! 🚀**
 
+---
+
+## 👤 Project Creator
+
+**Created by:** Sushil Kumar  
+🔗 [LinkedIn](https://www.linkedin.com/in/sushilk001/)
+

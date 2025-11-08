@@ -447,7 +447,13 @@ It's like Iron Man's JARVIS for your infrastructure! 🦾
 - Energy
 - Clarity
 - Impact
-- Professional quality
+
+---
+
+## 👤 Project Creator
+
+**Created by:** Sushil Kumar  
+🔗 [LinkedIn](https://www.linkedin.com/in/sushilk001/)
 
 **Your app is impressive. Now make your demo equally impressive!** 🚀
 

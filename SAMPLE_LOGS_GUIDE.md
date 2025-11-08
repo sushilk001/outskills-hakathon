@@ -233,8 +233,8 @@ YYYY-MM-DD HH:MM:SS SEVERITY [Component] Message with details
 
 Example:
 ```
-2024-11-07 10:30:00 ERROR [MyService] Custom error: specific details here
-2024-11-07 10:30:01 CRITICAL [MyDB] Critical database issue description
+2025-11-07 10:30:00 ERROR [MyService] Custom error: specific details here
+2025-11-07 10:30:01 CRITICAL [MyDB] Critical database issue description
 ```
 
 ## 🎯 Quick Test Commands
@@ -266,7 +266,12 @@ done
 3. Upload or paste the logs
 4. Watch the agents work their magic!
 
+**Happy Testing! 🚀**
+
 ---
 
-**Happy Testing! 🚀**
+## 👤 Project Creator
+
+**Created by:** Sushil Kumar  
+🔗 [LinkedIn](https://www.linkedin.com/in/sushilk001/)
 

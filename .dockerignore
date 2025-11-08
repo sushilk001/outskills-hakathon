@@ -1,0 +1,45 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+
+# Environment
+.env
+*.env
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated files
+cookbooks/*.json
+uploaded_logs/*
+*.log
+
+# Documentation (keep in repo but not needed in Docker)
+*.md
+!README.md
+
+# Scripts
+*.sh
+
+# Vector stores (will be regenerated)
+vector_stores/
+

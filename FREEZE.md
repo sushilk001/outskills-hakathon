@@ -1,6 +1,6 @@
 # 🧊 CODE FREEZE - v1.0.0 "JARVIS"
 
-**Freeze Date:** November 7, 2024  
+**Freeze Date:** November 7, 2025  
 **Status:** ✅ FROZEN - Ready for Hackathon Submission  
 **Version:** 1.0.0  
 **Codename:** JARVIS  
@@ -306,7 +306,7 @@ If questions arise about the frozen codebase:
 
 ---
 
-**Freeze Date:** November 7, 2024  
+**Freeze Date:** November 7, 2025  
 **Frozen By:** Development Team  
 **Purpose:** Hackathon Submission  
 **Status:** ✅ COMPLETE  
@@ -314,4 +314,11 @@ If questions arise about the frozen codebase:
 ---
 
 > *"In the time it took you to read this freeze document, our system analyzed 3 incidents."* ⚡
+
+---
+
+## 👤 Project Creator
+
+**Created by:** Sushil Kumar  
+🔗 [LinkedIn](https://www.linkedin.com/in/sushilk001/)
 

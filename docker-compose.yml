@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - USE_OPENROUTER=${USE_OPENROUTER:-true}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      - SLACK_CHANNEL_ID=${SLACK_CHANNEL_ID}
+      - JIRA_URL=${JIRA_URL}
+      - JIRA_EMAIL=${JIRA_EMAIL}
+      - JIRA_API_TOKEN=${JIRA_API_TOKEN}
+      - JIRA_PROJECT_KEY=${JIRA_PROJECT_KEY:-OPS}
+    volumes:
+      - ./cookbooks:/app/cookbooks
+      - ./uploaded_logs:/app/uploaded_logs
+      - ./vector_stores:/app/vector_stores
+    restart: unless-stopped
+

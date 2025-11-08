@@ -93,8 +93,8 @@ User Uploads Logs
 ```json
 {
   "metadata": {
-    "incident_id": "INC-20241107-035000",
-    "analysis_date": "2024-11-07T03:50:00",
+    "incident_id": "INC-20251107-035000",
+    "analysis_date": "2025-11-07T03:50:00",
     "total_issues": 15,
     "critical_count": 3,
     "error_count": 10
@@ -140,7 +140,7 @@ User Uploads Logs
   ],
   "timeline": [
     {
-      "timestamp": "2024-11-06 14:23:45",
+      "timestamp": "2025-11-06 14:23:45",
       "event": "Database connection timeout",
       "severity": "ERROR",
       "category": "database"
@@ -333,4 +333,11 @@ Don't just read them:
 ---
 
 **The RCA feature transforms your incident response from reactive to proactive! 🎯**
+
+---
+
+## 👤 Project Creator
+
+**Created by:** Sushil Kumar  
+🔗 [LinkedIn](https://www.linkedin.com/in/sushilk001/)
 

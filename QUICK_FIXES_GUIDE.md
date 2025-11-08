@@ -296,3 +296,10 @@ class LogValidator:
 
 **This moves you from "good project" to "winner"!** 🏆
 
+---
+
+## 👤 Project Creator
+
+**Created by:** Sushil Kumar  
+🔗 [LinkedIn](https://www.linkedin.com/in/sushilk001/)
+
