@@ -51,7 +51,7 @@
 | Agent | Icon | Capability | Technology |
 |-------|------|------------|------------|
 | **Log Classifier** | 🔍 | Parses & classifies logs with ML | Pattern Recognition |
-| **Remediation AI** | 🔧 | Finds solutions using **RAG + FAISS** | Vector Search + LLM |
+| **Remediation AI** | 🔧 | Finds solutions using **RAG + FAISS + MCP** | Vector Search + LLM + Real-Time Context |
 | **Slack Notifier** | 📱 | Posts solutions to Slack in real-time | Slack API |
 | **Cookbook Gen** | 🗒️ | Generates reusable incident playbooks | Document Generation |
 | **JIRA Creator** | 🎫 | Creates tickets for critical issues | JIRA API |
@@ -99,6 +99,7 @@
 ### 🔬 Advanced AI Features
 
 - ✅ **RAG-Powered Remediation** - FAISS vector store + HuggingFace embeddings for semantic search
+- ✅ **MCP-Enhanced Context** - Real-time metrics, infrastructure state, and historical incidents
 - ✅ **Structured Root Cause Analysis** - Five Whys methodology with comprehensive RCA reports
 - ✅ **Multi-Model Support** - OpenAI GPT & OpenRouter for flexibility
 - ✅ **Knowledge Base** - Extensible remediation knowledge repository
@@ -127,7 +128,7 @@ graph TB
     Start([👤 User Uploads Logs]) --> Orchestrator[🎯 LangGraph Orchestrator]
     
     Orchestrator --> Agent1[🔍 Log Classifier<br/>Parse & Classify]
-    Agent1 --> Agent2[🔧 Remediation AI<br/>RAG + FAISS Search]
+    Agent1 --> Agent2[🔧 Remediation AI<br/>RAG + FAISS + MCP]
     Agent2 --> Agent3[📱 Slack Notifier<br/>Send Alerts]
     Agent3 --> Agent4[🎫 JIRA Creator<br/>Create Tickets]
     Agent4 --> Agent5[🗒️ Cookbook Gen<br/>Generate Playbook]
@@ -136,6 +137,12 @@ graph TB
     Agent1 --> KB[(📚 Knowledge Base<br/>FAISS Vector Store)]
     Agent2 -.->|Semantic Search| KB
     KB -.->|Retrieved Context| Agent2
+    
+    Agent2 -.->|Real-Time Context| MCP[🔌 MCP Context Layer<br/>Prometheus • K8s • JIRA]
+    MCP -.->|Metrics & State| Agent2
+    MCP --> Prometheus[📊 Prometheus<br/>Metrics]
+    MCP --> K8s[🏗️ Kubernetes<br/>Infrastructure]
+    MCP --> JIRAHistory[📋 JIRA<br/>Recent Incidents]
     
     Agent3 --> Slack[💬 Slack API]
     Agent4 --> JIRA[🎫 JIRA API]
@@ -159,6 +166,10 @@ graph TB
     style Agent5 fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
     style Agent6 fill:#06b6d4,stroke:#0891b2,stroke-width:2px,color:#fff
     style KB fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#fff
+    style MCP fill:#10b981,stroke:#059669,stroke-width:3px,color:#fff
+    style Prometheus fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
+    style K8s fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
+    style JIRAHistory fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
     style Results fill:#10b981,stroke:#059669,stroke-width:3px,color:#fff
     style UI fill:#667eea,stroke:#764ba2,stroke-width:3px,color:#fff
     style Export fill:#ec4899,stroke:#db2777,stroke-width:2px,color:#fff
@@ -190,7 +201,7 @@ graph TB
 ├───────────────┤                      ├───────────────┤
 │ • Parse logs  │───────┐              │ • RAG Search  │
 │ • Classify    │       │              │ • FAISS Query │
-│ • Extract     │       │              │ • Context     │
+│ • Extract     │       │              │ • MCP Context │
 │ • Categorize  │       │              │ • Generate    │
 └───────┬───────┘       │              │   Solutions   │
         │               │              └───────┬───────┘
@@ -202,6 +213,15 @@ graph TB
         │               │          │  • Embeddings        │
         │               │          │  • Semantic Search   │
         │               │          │  • Context Retrieval │
+        │               │          └───────────────────────┘
+        │               │                      │
+        │               │                      ▼
+        │               │          ┌───────────────────────┐
+        │               │          │  🔌 MCP CONTEXT LAYER  │
+        │               │          │  • Prometheus Metrics │
+        │               │          │  • K8s Infrastructure │
+        │               │          │  • JIRA Incidents     │
+        │               │          │  • Real-Time Data     │
         │               │          └───────────────────────┘
         │               │                      │
         │               │                      │
@@ -257,26 +277,30 @@ graph TB
 │   Logs      │────▶│  Log Reader  │────▶│  Issues     │
 │  (Input)    │     │   Agent      │     │  Found      │
 └─────────────┘     └──────────────┘     └──────┬──────┘
-                                                  │                                    │
+                                                  │
                                                   ▼
                                           ┌──────────────┐
                                           │ Remediation  │◀──┐
                                           │ AI Agent     │   │
-                                          │ (RAG Search) │   │
+                                          │ (RAG + MCP)  │   │
                                           └──────┬───────┘   │
                                                   │          │
-                                                  ▼          │
-                                          ┌──────────────┐   │
-                                          │  FAISS       │───┘
-                                          │  Vector DB   │
-                                          │  (Knowledge) │
-                                          └──────────────┘
+                    ┌────────────────────────────┼──────────┘
+                    │                            │
+                    ▼                            ▼
+          ┌──────────────┐              ┌──────────────┐
+          │  FAISS       │              │  🔌 MCP      │
+          │  Vector DB   │              │  Context     │
+          │  (Knowledge) │              │  • Metrics   │
+          └──────────────┘              │  • Infra     │
+                                        │  • History   │
+                                        └──────────────┘
                                                   │
                                                   ▼
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Results   │◀────│  Orchestrator │◀────│  Solutions  │
-│  (Output)   │     │   (State)     │     │  Generated  │
-└─────────────┘     └──────────────┘     └─────────────┘
+┌─────────────┐     ┌──────────────┐     │
+│   Results     │◀────│  Orchestrator │◀───────┘
+│  (Output)   │     │   (State)     │
+└─────────────┘     └──────────────┘
 ```
 
 **Every step is traceable** through LangSmith integration 🔍
@@ -294,6 +318,12 @@ graph TB
 - **FAISS** - High-performance vector database for semantic search
 - **HuggingFace Embeddings** - Sentence transformers (all-MiniLM-L6-v2)
 - **Knowledge Base** - Extensible remediation knowledge repository
+
+### MCP (Model Context Protocol)
+- **Real-Time Context Integration** - Queries Prometheus, Kubernetes, and monitoring systems
+- **Infrastructure State Awareness** - Checks pod status, resource usage, and deployment state
+- **Historical Incident Correlation** - Searches JIRA for similar past incidents and resolutions
+- **Enhanced Remediation** - Combines RAG knowledge with real-time metrics for higher accuracy
 
 ### Integrations
 - **Slack API** - Real-time notifications and alerts

@@ -54,6 +54,9 @@ class Config:
     MAX_AGENT_ITERATIONS = 5
     AGENT_TIMEOUT = 120  # seconds
     
+    # MCP (Model Context Protocol) Settings
+    MCP_ENABLED = os.getenv("MCP_ENABLED", "true").lower() == "true"
+    
     @classmethod
     def ensure_directories(cls):
         """Create necessary directories if they don't exist"""

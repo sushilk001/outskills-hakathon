@@ -185,11 +185,38 @@ def render_header():
         <p style="font-size: 18px; opacity: 0.9;">
             AI-Powered Intelligent Incident Response & Resolution
         </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Version and MCP status in columns
+    if Config.MCP_ENABLED:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown(f"""
+            <p style="font-size: 18px; opacity: 0.9; margin-top: 10px; font-weight: bold;">
+            v{VERSION} "{RELEASE_NAME}" | Released {RELEASE_DATE}
+        </p>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 6px 14px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: bold;
+                text-align: center;
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+                margin-top: 10px;
+            ">🔌 MCP ENABLED</div>
+            """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
         <p style="font-size: 18px; opacity: 0.9; margin-top: 10px; font-weight: bold;">
             v{VERSION} "{RELEASE_NAME}" | Released {RELEASE_DATE}
         </p>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
 
 def render_persistent_agent_status():
@@ -232,8 +259,8 @@ def render_persistent_agent_status():
             ">
                 Status: ✅ ACTIVE
             </span>
-        </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def render_sidebar():
@@ -344,7 +371,18 @@ def render_sidebar():
                 st.info("○ JIRA")
         
         with col4:
-            st.info("✓ RAG")
+            st.success("✓ RAG")
+        
+        col5, col6 = st.columns(2)
+        with col5:
+            if Config.MCP_ENABLED:
+                st.success("✓ MCP")
+            else:
+                st.info("○ MCP")
+        
+        with col6:
+            # Empty column for alignment
+            pass
         
         # Sample logs
         st.markdown("### 📝 Quick Test")
@@ -518,7 +556,7 @@ def render_business_impact(impact):
         return
     
     st.markdown("### 💰 Business Impact Analysis")
-    st.markdown("*Estimated savings based on typical DevOps engineering rates and resolution times*")
+    st.markdown("*Real-time calculations based on actual analysis performance*")
     
     # Big impact numbers
     col1, col2, col3, col4 = st.columns(4)
@@ -799,6 +837,11 @@ def render_results(results):
     
     state = results.get("state", {})
     
+    # Single MCP status indicator at the top
+    if Config.MCP_ENABLED:
+        st.success("🔌 **MCP Enabled**: This analysis includes real-time metrics, infrastructure state, and historical incident context for enhanced accuracy")
+        st.markdown("---")
+    
     # Business Impact Dashboard (NEW - Top Priority)
     impact_metrics = calculate_business_impact(results)
     if impact_metrics:
@@ -865,10 +908,49 @@ def render_results(results):
             with st.expander(f"🔴 Issue #{i}: {issue['category'].upper()} - {issue['severity']}", expanded=False):
                 st.markdown(f"**Message:** `{issue['message']}`")
                 st.markdown(f"**Timestamp:** {issue.get('timestamp', 'Unknown')}")
+                
+                # Show MCP context if available
+                if rem.get('mcp_context_used') and rem.get('mcp_data'):
+                    st.markdown("---")
+                    st.markdown("#### 🔌 Real-Time Context (MCP)")
+                    mcp_data = rem['mcp_data']
+                    
+                    if mcp_data.get('metrics'):
+                        m = mcp_data['metrics']
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Metric", m.get('metric', 'N/A'))
+                        with col2:
+                            status_color = {"critical": "🔴", "warning": "🟡", "normal": "🟢"}.get(m.get('status', '').lower(), "⚪")
+                            st.metric("Status", f"{status_color} {m.get('status', 'N/A')}")
+                        with col3:
+                            st.metric("Value", f"{m.get('value', 'N/A')} {m.get('unit', '')}")
+                        st.caption(f"📈 Trend: {m.get('trend', 'unknown')} | {m.get('message', '')}")
+                    
+                    if mcp_data.get('infrastructure'):
+                        i = mcp_data['infrastructure']
+                        st.markdown(f"**Infrastructure:** {i.get('status', 'N/A')} - {i.get('message', '')}")
+                        if 'restarts' in i:
+                            st.caption(f"🔄 Restarts: {i.get('restarts', 0)} | Memory: {i.get('memory_usage', 'N/A')}")
+                    
+                    if mcp_data.get('recent_incidents'):
+                        incidents = mcp_data['recent_incidents']
+                        st.markdown(f"**Recent Similar Incidents:** {len(incidents)} found")
+                        for inc in incidents[:2]:
+                            st.caption(f"• {inc.get('key', 'N/A')}: {inc.get('summary', '')} → Resolution: {inc.get('resolution', 'N/A')[:100]}")
+                
                 st.markdown("---")
                 st.markdown("**Remediation Plan:**")
                 st.markdown(plan)
-                st.caption(f"Confidence: {rem['confidence']} | Sources: {rem['knowledge_sources']}")
+                
+                # Enhanced confidence badge
+                confidence = rem.get('confidence', 'medium')
+                confidence_icon = {"high": "🟢", "medium-high": "🟡", "medium": "🟠"}.get(confidence.lower(), "⚪")
+                mcp_badge = "🔌 MCP" if rem.get('mcp_context_used') else ""
+                rag_badge = f"📚 RAG ({rem['knowledge_sources']} sources)" if rem.get('knowledge_sources', 0) > 0 else ""
+                badges = [b for b in [mcp_badge, rag_badge] if b]
+                badges_str = " | ".join(badges) if badges else "Basic analysis"
+                st.caption(f"{confidence_icon} Confidence: {confidence.upper()} | {badges_str}")
     
     # JIRA Tickets
     if jira_tickets.get("tickets"):
@@ -1039,10 +1121,19 @@ def main():
     # Sidebar
     sidebar_action = render_sidebar()
     
-    # Main content
-    tab1, tab2, tab3 = st.tabs(["📤 Upload Logs", "🔍 Analysis", "ℹ️ About"])
+    # Main content with MCP indicator in tabs
+    mcp_tab_indicator = " 🔌" if Config.MCP_ENABLED else ""
+    tab1, tab2, tab3 = st.tabs([
+        f"📤 Upload Logs{mcp_tab_indicator}", 
+        f"🔍 Analysis{mcp_tab_indicator}", 
+        "ℹ️ About"
+    ])
     
     with tab1:
+        # MCP status at top of upload tab
+        if Config.MCP_ENABLED:
+            st.info("🔌 **MCP Enabled**: When you analyze logs, the system will automatically query real-time metrics, infrastructure state, and recent incidents to provide enhanced context.")
+        
         st.markdown("### 📤 Upload Operational Logs")
         
         # Load sample if requested
@@ -1090,9 +1181,10 @@ def main():
             st.session_state.analysis_complete = False
             
             # Agent configuration with icons and names
+            mcp_desc_suffix = " (with MCP context)" if Config.MCP_ENABLED else ""
             agent_config = {
                 "log_reader": {"name": "🔍 Log Reader", "desc": "Parsing logs..."},
-                "remediation": {"name": "💊 Remediation", "desc": "Finding solutions..."},
+                "remediation": {"name": "💊 Remediation", "desc": f"Finding solutions...{mcp_desc_suffix}"},
                 "rca": {"name": "🔬 RCA Analysis", "desc": "Root cause analysis..."},
                 "notification": {"name": "📢 Notification", "desc": "Sending alerts..."},
                 "jira": {"name": "🎫 JIRA Tickets", "desc": "Creating tickets..."},
@@ -1416,7 +1508,7 @@ def main():
         
         1. **🔍 Log Classifier** - Parses and classifies log entries with ML, extracts severity levels (CRITICAL, ERROR, WARNING), categorizes issues by type (database, network, memory, etc.), and identifies key fields (IPs, error codes, services)
         
-        2. **🔧 Remediation AI** - Uses **RAG (Retrieval Augmented Generation)** with FAISS vector store to find proven solutions from knowledge base. Performs semantic search to match issues with relevant remediation strategies and generates actionable fix plans
+        2. **🔧 Remediation AI** - Uses **RAG (Retrieval Augmented Generation)** with FAISS vector store to find proven solutions from knowledge base. **Enhanced with MCP** to query real-time metrics, infrastructure state, and recent incidents. Performs semantic search to match issues with relevant remediation strategies and generates actionable fix plans with higher confidence
         
         3. **📱 Slack Notifier** - Posts rich formatted messages to Slack in real-time with issue details, remediation plans, and actionable insights. Supports fallback text for all clients and tracks notification delivery
         
@@ -1443,6 +1535,13 @@ def main():
         - **JIRA API** - Automated ticket creation and tracking
         - **LangSmith** (Optional) - Agent tracing and monitoring
         
+        **MCP (Model Context Protocol):**
+        - **Real-Time Context Integration** - Queries Prometheus, Kubernetes, and monitoring systems during analysis
+        - **Infrastructure State Awareness** - Checks pod status, resource usage, and deployment state
+        - **Historical Incident Correlation** - Searches JIRA for similar past incidents and their resolutions
+        - **Enhanced Remediation** - Combines RAG knowledge with real-time metrics for more accurate solutions
+        - **Dynamic Context Enrichment** - Automatically pulls relevant data from multiple sources during analysis
+        
         **Data Processing:**
         - **Async/Await** - Non-blocking agent execution
         - **Real-time Metrics** - Dynamic business impact calculations
@@ -1452,6 +1551,7 @@ def main():
         **Core Capabilities:**
         ✅ Intelligent log parsing and classification with ML  
         ✅ **RAG-powered remediation** - FAISS vector search + knowledge base retrieval  
+        ✅ **MCP-enhanced context** - Real-time metrics, infrastructure state, and historical incidents  
         ✅ **Structured Root Cause Analysis (RCA)** - Five Whys methodology  
         ✅ Automated Slack notifications with rich formatting  
         ✅ JIRA ticket creation with auto-priority and labels  
@@ -1464,17 +1564,59 @@ def main():
         ✅ **Live agent status** - Real-time visualization of agent collaboration  
         
         **Advanced Features:**
+        ✅ **MCP Integration** - Real-time context from monitoring systems (Prometheus, Kubernetes, JIRA)  
         ✅ Traceable execution logs for all agents  
         ✅ Downloadable RCA reports (Word & JSON formats)  
         ✅ Exportable incident playbooks  
         ✅ Multi-model support (OpenAI & OpenRouter)  
         ✅ Extensible knowledge base for custom remediations  
+        ✅ **Enhanced confidence scoring** - Combines RAG + MCP context for higher accuracy  
+        
+        ### 🔌 MCP (Model Context Protocol) Integration
+        
+        **What is MCP?**
+        
+        MCP (Model Context Protocol) is a standardized protocol that enables AI systems to connect to external data sources in real-time, providing enhanced context during analysis.
+        
+        **How MCP Enhances This Application:**
+        
+        1. **Real-Time Metrics** 📊
+           - Queries Prometheus for current CPU, memory, error rates, and connection pool metrics
+           - Provides live infrastructure state during incident analysis
+           - Enables data-driven remediation recommendations
+        
+        2. **Infrastructure State** 🏗️
+           - Checks Kubernetes pod status, restarts, and resource usage
+           - Identifies infrastructure issues (CrashLoopBackOff, resource limits, etc.)
+           - Correlates log errors with actual infrastructure state
+        
+        3. **Historical Context** 📋
+           - Searches JIRA for similar past incidents
+           - Retrieves proven resolutions from previous incidents
+           - Learns from past solutions to improve recommendations
+        
+        4. **Enhanced Accuracy** 🎯
+           - Combines static knowledge (RAG) with real-time data (MCP)
+           - Increases confidence scores from Medium to High
+           - Provides more actionable and specific remediation plans
+        
+        **MCP Status:**
+        - ✅ **Enabled by default** - Automatically queries context during analysis
+        - 🔌 **Visible in UI** - MCP indicators show when enhanced context is used
+        - 📊 **Real-time data** - Metrics and state are queried at analysis time
+        
+        **Example MCP Enhancement:**
+        
+        **Without MCP:** "Check database server status" (generic recommendation)
+        
+        **With MCP:** "Database connection pool at 95/100 (critical). Pod in CrashLoopBackOff with 5 restarts. Memory usage at 95%. Similar incident OPS-1234 resolved by restarting pod and increasing memory to 6Gi. **Action:** Restart pod and increase memory limit." (specific, data-driven)
         
         ### 📚 Resources
         
         - [Documentation](#)
         - [GitHub Repository](#)
         - [API Reference](#)
+        - [MCP Integration Guide](MCP_INTEGRATION_PROPOSAL.md)
         
         ---
         

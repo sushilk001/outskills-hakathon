@@ -44,9 +44,17 @@ class IncidentOrchestrator:
         self.api_key = api_key
         self.progress_callback = progress_callback
         
+        # Initialize MCP client if enabled
+        try:
+            from mcp_client import MCPContextProvider
+            from config import Config
+            self.mcp_client = MCPContextProvider(enabled=Config.MCP_ENABLED) if Config.MCP_ENABLED else None
+        except ImportError:
+            self.mcp_client = None
+        
         # Initialize all agents
         self.log_reader = LogReaderAgent(api_key)
-        self.remediation = RemediationAgent(api_key)
+        self.remediation = RemediationAgent(api_key, mcp_client=self.mcp_client)
         self.notification = NotificationAgent(api_key)
         self.jira = JiraAgent(api_key)
         self.cookbook = CookbookAgent(api_key)

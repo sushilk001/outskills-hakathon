@@ -1,6 +1,7 @@
 """
-Remediation Agent with RAG
+Remediation Agent with RAG and MCP
 Maps detected issues to fixes and provides rationale using knowledge base
+Enhanced with MCP for real-time context from monitoring and infrastructure
 """
 from typing import Dict, Any, List, Optional
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -13,15 +14,30 @@ import os
 
 logger = logging.getLogger(__name__)
 
+# Import MCP client if available
+try:
+    from mcp_client import MCPContextProvider
+    MCP_AVAILABLE = True
+except ImportError:
+    MCP_AVAILABLE = False
+    logger.warning("MCP client not available")
+
 
 class RemediationAgent(BaseAgent):
     """Agent responsible for finding remediation solutions using RAG"""
     
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, mcp_client=None):
         super().__init__(name="Remediation Agent", api_key=api_key)
         self.embeddings = self._initialize_embeddings()
         self.vector_store = None
         self._load_knowledge_base()
+        
+        # Initialize MCP client if enabled
+        if MCP_AVAILABLE and Config.MCP_ENABLED:
+            self.mcp_client = mcp_client or MCPContextProvider(enabled=True)
+            logger.info("Remediation Agent: MCP enabled for enhanced context")
+        else:
+            self.mcp_client = None
     
     def _initialize_embeddings(self) -> Optional[HuggingFaceEmbeddings]:
         """Initialize embedding model"""
@@ -200,12 +216,12 @@ Rationale: {doc['rationale']}
             }
     
     async def _find_remediation(self, issue: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Find remediation for a specific issue using RAG"""
+        """Find remediation for a specific issue using RAG + MCP context"""
         try:
             # Create query from issue
             query = f"{issue['category']} {issue['severity']} {issue['message']}"
             
-            # Retrieve relevant knowledge
+            # Retrieve relevant knowledge from RAG
             relevant_docs = []
             if self.vector_store:
                 try:
@@ -216,11 +232,60 @@ Rationale: {doc['rationale']}
                 except Exception as e:
                     logger.warning(f"Vector search failed: {e}")
             
-            # Generate remediation using LLM with context
+            # Get MCP context (real-time metrics, infrastructure state, etc.)
+            mcp_context = ""
+            mcp_data = {}
+            if self.mcp_client:
+                try:
+                    # Query metrics based on issue category
+                    if "database" in issue['category'].lower() or "connection" in issue['message'].lower():
+                        metrics = await self.mcp_client.get_metrics("database_connections", "5m")
+                        infra_state = await self.mcp_client.get_infrastructure_state("pod", {
+                            "name": "database-pod",
+                            "namespace": "production"
+                        })
+                        mcp_data["metrics"] = metrics
+                        mcp_data["infrastructure"] = infra_state
+                    elif "cpu" in issue['message'].lower() or "memory" in issue['message'].lower():
+                        metrics = await self.mcp_client.get_metrics("cpu_usage", "5m")
+                        mcp_data["metrics"] = metrics
+                    elif "error" in issue['message'].lower():
+                        metrics = await self.mcp_client.get_metrics("error_rate", "5m")
+                        health = await self.mcp_client.get_service_health("api-service")
+                        mcp_data["metrics"] = metrics
+                        mcp_data["health"] = health
+                    
+                    # Get recent similar incidents
+                    recent_incidents = await self.mcp_client.get_recent_incidents(issue['category'], 24)
+                    if recent_incidents:
+                        mcp_data["recent_incidents"] = recent_incidents
+                    
+                    # Format MCP context for prompt
+                    if mcp_data:
+                        mcp_context = "\n\n**Real-Time Context (MCP):**\n"
+                        if "metrics" in mcp_data and mcp_data["metrics"]:
+                            m = mcp_data["metrics"]
+                            mcp_context += f"- Current Metrics: {m.get('metric', 'N/A')} = {m.get('value', 'N/A')} {m.get('unit', '')} ({m.get('status', 'unknown')} status)\n"
+                            mcp_context += f"  Trend: {m.get('trend', 'unknown')}, Message: {m.get('message', '')}\n"
+                        if "infrastructure" in mcp_data and mcp_data["infrastructure"]:
+                            i = mcp_data["infrastructure"]
+                            mcp_context += f"- Infrastructure State: {i.get('status', 'unknown')} - {i.get('message', '')}\n"
+                            if "restarts" in i:
+                                mcp_context += f"  Restarts: {i.get('restarts', 0)}, Resource Usage: {i.get('memory_usage', 'N/A')}\n"
+                        if "recent_incidents" in mcp_data and mcp_data["recent_incidents"]:
+                            incidents = mcp_data["recent_incidents"]
+                            mcp_context += f"- Recent Similar Incidents: Found {len(incidents)} similar incidents\n"
+                            for inc in incidents[:2]:
+                                mcp_context += f"  • {inc.get('key', 'N/A')}: {inc.get('summary', '')} - Resolution: {inc.get('resolution', 'N/A')}\n"
+                except Exception as e:
+                    logger.warning(f"MCP context retrieval failed: {e}")
+                    mcp_context = ""
+            
+            # Generate remediation using LLM with enhanced context
             if self.llm:
                 context = "\n\n".join([doc.page_content for doc in relevant_docs]) if relevant_docs else "No specific knowledge available."
                 
-                prompt = f"""You are a DevOps expert. Given this incident and relevant knowledge, provide a clear remediation plan.
+                prompt = f"""You are a DevOps expert. Given this incident, relevant knowledge, and real-time context, provide a clear remediation plan.
 
 **Incident Details:**
 - Severity: {issue['severity']}
@@ -228,24 +293,35 @@ Rationale: {doc['rationale']}
 - Message: {issue['message']}
 - Timestamp: {issue.get('timestamp', 'Unknown')}
 
-**Relevant Knowledge:**
+**Relevant Knowledge (RAG):**
 {context}
+{mcp_context}
 
 Provide:
-1. **Root Cause**: Brief explanation (1-2 sentences)
-2. **Immediate Action**: What to do right now (3-5 steps)
+1. **Root Cause**: Brief explanation (1-2 sentences) - use MCP context if available
+2. **Immediate Action**: What to do right now (3-5 steps) - prioritize based on real-time metrics
 3. **Long-term Fix**: Prevent recurrence (2-3 points)
 4. **Priority**: Critical/High/Medium/Low
+5. **Confidence**: High/Medium/Low (based on available context)
 
-Format as clear, actionable steps."""
+Format as clear, actionable steps. If MCP context is available, reference it in your analysis."""
 
                 response = self.llm.invoke(prompt)
+                
+                # Determine confidence based on available context
+                confidence = "medium"
+                if mcp_data and relevant_docs:
+                    confidence = "high"
+                elif mcp_data or relevant_docs:
+                    confidence = "medium-high"
                 
                 return {
                     "issue": issue,
                     "remediation_plan": response.content.strip(),
                     "knowledge_sources": len(relevant_docs),
-                    "confidence": "high" if relevant_docs else "medium"
+                    "mcp_context_used": bool(mcp_data),
+                    "mcp_data": mcp_data if mcp_data else None,
+                    "confidence": confidence
                 }
             else:
                 # Fallback without LLM
