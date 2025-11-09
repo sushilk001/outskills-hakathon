@@ -25,8 +25,11 @@ class Config:
     # Fallback to OpenAI if needed
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
     
+    # Slack Integration (Optional)
     SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN", "")
     SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID", "")
+    
+    # JIRA Integration (Optional)
     JIRA_URL = os.getenv("JIRA_URL", "")
     JIRA_EMAIL = os.getenv("JIRA_EMAIL", "")
     JIRA_API_TOKEN = os.getenv("JIRA_API_TOKEN", "")

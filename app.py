@@ -952,18 +952,155 @@ def render_results(results):
                 badges_str = " | ".join(badges) if badges else "Basic analysis"
                 st.caption(f"{confidence_icon} Confidence: {confidence.upper()} | {badges_str}")
     
-    # JIRA Tickets
-    if jira_tickets.get("tickets"):
-        st.markdown("### 🎫 JIRA Tickets Created")
+    # Slack Notifications
+    notifications = state.get("notifications", {})
+    if notifications.get("success") and notifications.get("notifications_sent", 0) > 0:
+        st.markdown("### 📱 Slack Notifications")
         
-        for ticket in jira_tickets["tickets"]:
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.markdown(f"**{ticket['ticket_key']}**: {ticket['summary']}")
-            with col2:
-                st.markdown(f"Priority: **{ticket['priority']}**")
-                if ticket.get("ticket_url"):
-                    st.markdown(f"[View Ticket]({ticket['ticket_url']})")
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            if notifications.get("slack_ts"):
+                st.success(f"✅ Notification sent successfully to Slack channel")
+                st.caption(f"Message timestamp: {notifications.get('slack_ts')}")
+                
+                # Create Slack deep link
+                channel_id = notifications.get("channel", "") or Config.SLACK_CHANNEL_ID
+                slack_ts = notifications.get("slack_ts", "")
+                team_id = notifications.get("team_id", "")
+                
+                if channel_id:
+                    # Build button HTML separately to avoid nested f-string issues
+                    import html
+                    channel_id_escaped = html.escape(str(channel_id))
+                    
+                    # Construct proper Slack URL
+                    # Format: https://app.slack.com/client/{team_id}/{channel_id}
+                    if team_id:
+                        slack_url = f"https://app.slack.com/client/{team_id}/{channel_id}"
+                    else:
+                        # Fallback: try to construct URL without team_id (may not work)
+                        slack_url = f"https://app.slack.com/client/{channel_id}"
+                    
+                    button_html = f'''<a href="{slack_url}" target="_blank" style="
+                        display: inline-block;
+                        background: linear-gradient(135deg, #4A154B, #611f69);
+                        color: white;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        text-decoration: none;
+                        font-weight: bold;
+                        font-size: 14px;
+                        box-shadow: 0 2px 8px rgba(74, 21, 75, 0.3);
+                        transition: all 0.2s;
+                    " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 12px rgba(74, 21, 75, 0.4)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 8px rgba(74, 21, 75, 0.3)'">
+                        💬 Open in Slack
+                    </a>'''
+                    
+                    st.markdown(f"""
+                    <div style="margin-top: 10px;">
+                        {button_html}
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.caption(f"Channel: <code>{channel_id_escaped}</code>", unsafe_allow_html=True)
+            else:
+                st.info(f"📤 Notification prepared (simulation mode)")
+        with col2:
+            if notifications.get("mode") == "simulation":
+                st.warning("Simulation Mode")
+            else:
+                st.success("Live Mode")
+        
+        if notifications.get("message_preview"):
+            with st.expander("📋 View Notification Preview"):
+                st.text(notifications.get("message_preview", "")[:500])
+    
+    # JIRA Tickets
+    if jira_tickets:
+        tickets_created = jira_tickets.get("tickets_created", 0)
+        tickets_list = jira_tickets.get("tickets", [])
+        
+        if tickets_created > 0 or tickets_list:
+            st.markdown("### 🎫 JIRA Tickets Created")
+            
+            if jira_tickets.get("mode") == "simulation":
+                st.warning("⚠️ Simulation Mode: Tickets were not actually created in JIRA")
+            else:
+                st.success(f"✅ {tickets_created} ticket(s) created in JIRA")
+            
+            if tickets_list:
+                for ticket in tickets_list:
+                    ticket_key = ticket.get('ticket_key', 'N/A')
+                    summary = ticket.get('summary', 'No summary')
+                    priority = ticket.get('priority', 'Medium')
+                    ticket_url = ticket.get("ticket_url", "")
+                    
+                    # Fix URL if it contains placeholder (for cached/old results)
+                    if ticket_url and ("your-domain.atlassian.net" in ticket_url or "your-jira.atlassian.net" in ticket_url):
+                        # Replace placeholder with actual JIRA URL from config
+                        jira_base = Config.JIRA_URL.rstrip('/')
+                        ticket_url = f"{jira_base}/browse/{ticket_key}"
+                    elif not ticket_url and ticket_key != 'N/A':
+                        # If no URL but we have a ticket key, construct it
+                        jira_base = Config.JIRA_URL.rstrip('/')
+                        ticket_url = f"{jira_base}/browse/{ticket_key}"
+                    
+                    # Escape HTML special characters in text fields (but not URLs)
+                    import html
+                    ticket_key_escaped = html.escape(str(ticket_key))
+                    summary_escaped = html.escape(str(summary))
+                    priority_escaped = html.escape(str(priority))
+                    
+                    # Build the button HTML separately to avoid nested f-string issues
+                    button_html = ""
+                    if ticket_url:
+                        # Don't escape URL - it's used in href attribute
+                        button_html = f'''<a href="{ticket_url}" target="_blank" style="
+                            display: inline-block;
+                            background: linear-gradient(135deg, #0052CC, #0065FF);
+                            color: white;
+                            padding: 12px 24px;
+                            border-radius: 6px;
+                            text-decoration: none;
+                            font-weight: bold;
+                            font-size: 14px;
+                            box-shadow: 0 2px 4px rgba(0, 82, 204, 0.3);
+                            transition: all 0.2s;
+                            margin-left: 10px;
+                        " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 4px 8px rgba(0, 82, 204, 0.4)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(0, 82, 204, 0.3)'">
+                            🎫 View in JIRA
+                        </a>'''
+                    
+                    # Create a card-like display for each ticket
+                    card_html = f"""
+                    <div style="
+                        border: 1px solid #e0e0e0;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin: 10px 0;
+                        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 5px 0; color: #0052CC;">
+                                    {ticket_key_escaped}
+                                </h4>
+                                <p style="margin: 0; color: #666; font-size: 14px;">
+                                    {summary_escaped}
+                                </p>
+                                <p style="margin: 5px 0 0 0; color: #999; font-size: 12px;">
+                                    Priority: <strong>{priority_escaped}</strong>
+                                </p>
+                            </div>
+                            <div>
+                                {button_html}
+                            </div>
+                        </div>
+                    </div>
+                    """
+                    st.markdown(card_html, unsafe_allow_html=True)
+            elif tickets_created > 0:
+                st.info(f"Created {tickets_created} ticket(s), but details are not available")
     
     # Cookbook
     cookbook = state.get("cookbook", {})

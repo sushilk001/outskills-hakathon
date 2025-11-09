@@ -23,6 +23,7 @@ class NotificationAgent(BaseAgent):
     
     def __init__(self, api_key: str = None):
         super().__init__(name="Notification Agent", api_key=api_key)
+        self.team_id = ""
         self.slack_client = self._initialize_slack()
     
     def _initialize_slack(self) -> Optional[WebClient]:
@@ -37,12 +38,14 @@ class NotificationAgent(BaseAgent):
         
         try:
             client = WebClient(token=Config.SLACK_BOT_TOKEN)
-            # Test the connection
-            client.auth_test()
-            logger.info("Slack client initialized successfully")
+            # Test the connection and get team info
+            auth_response = client.auth_test()
+            self.team_id = auth_response.get("team_id", "")
+            logger.info(f"Slack client initialized successfully (Team: {self.team_id})")
             return client
         except Exception as e:
             logger.error(f"Failed to initialize Slack client: {e}")
+            self.team_id = ""
             return None
     
     async def execute(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -91,6 +94,7 @@ class NotificationAgent(BaseAgent):
                         "notifications_sent": 1,
                         "slack_ts": response["ts"],
                         "channel": Config.SLACK_CHANNEL_ID,
+                        "team_id": self.team_id,
                         "message_preview": message["fallback_text"][:200],
                         "execution_log": self.execution_log
                     }

@@ -157,9 +157,13 @@ _This ticket was automatically created by the DevOps Incident Analysis Suite_
             
             new_issue = self.jira_client.create_issue(fields=issue_dict)
             
+            # Ensure JIRA URL doesn't have trailing slash to avoid double slashes
+            jira_url = Config.JIRA_URL.rstrip('/')
+            ticket_url = f"{jira_url}/browse/{new_issue.key}"
+            
             return {
                 "ticket_key": new_issue.key,
-                "ticket_url": f"{Config.JIRA_URL}/browse/{new_issue.key}",
+                "ticket_url": ticket_url,
                 "summary": summary,
                 "priority": priority_map.get(issue['severity'], 'Medium')
             }
@@ -178,9 +182,13 @@ _This ticket was automatically created by the DevOps Incident Analysis Suite_
         ticket_key = f"OPS-{abs(hash(issue['message'])) % 10000}"
         summary = f"[{issue['severity']}] {issue['category'].upper()}: {issue['message'][:80]}"
         
+        # Use actual JIRA URL from config, or fallback to placeholder
+        jira_url = Config.JIRA_URL.rstrip('/') if Config.JIRA_URL else "https://your-jira.atlassian.net"
+        ticket_url = f"{jira_url}/browse/{ticket_key}"
+        
         return {
             "ticket_key": ticket_key,
-            "ticket_url": f"https://your-jira.atlassian.net/browse/{ticket_key}",
+            "ticket_url": ticket_url,
             "summary": summary,
             "priority": "High" if issue['severity'] == "CRITICAL" else "Medium",
             "mode": "simulated"

@@ -113,8 +113,10 @@
 
 ### 🔌 Enterprise Integrations
 
-- ✅ **Slack Integration** - Rich formatted notifications with issue details
-- ✅ **JIRA Integration** - Automated ticket creation with auto-priority
+- ✅ **Slack Integration** - Rich formatted notifications with issue details and **one-click deep links** to open channels directly
+- ✅ **JIRA Integration** - Automated ticket creation with auto-priority and **direct ticket links** for quick access
+- ✅ **Smart URL Handling** - Automatic correction of placeholder URLs and proper deep link construction
+- ✅ **Interactive UI Links** - Clickable buttons in the Analysis tab to open Slack channels and JIRA tickets instantly
 - ✅ **LangSmith** (Optional) - Agent tracing and monitoring
 
 ---
@@ -326,8 +328,9 @@ graph TB
 - **Enhanced Remediation** - Combines RAG knowledge with real-time metrics for higher accuracy
 
 ### Integrations
-- **Slack API** - Real-time notifications and alerts
-- **JIRA API** - Automated ticket creation and tracking
+- **Slack API** - Real-time notifications and alerts with deep links (team_id + channel_id support)
+- **JIRA API** - Automated ticket creation with direct ticket links
+- **Smart Link Generation** - Automatic team ID capture and proper URL construction for seamless navigation and tracking
 - **LangSmith** (Optional) - Agent tracing and monitoring
 
 ### Data Processing
